@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  api-gateway:
+    build:
+      context: ./gateway
+    container_name: nortear-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      #- AUTH_SERVICE_URL=http://auth-service:8081
+      #- CHAT_SERVICE_URL=http://chat-service:8082
+    networks:
+      - nortear-network
+    restart: unless-stopped
+    
+networks:
+  nortear-network:
+    driver: bridge
+    

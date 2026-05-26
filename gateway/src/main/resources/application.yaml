@@ -1,3 +1,18 @@
+server:
+  port: ${SERVER_PORT:8080}
+
 spring:
   application:
     name: gateway
+  cloud:
+    gateway:
+      routes:
+#        Exemplo de rota para replicação na medida da construção dos services e endpoints
+#        - id: auth-service
+#          uri: ${AUTH_SERVICE_URL:http://localhost:8081}
+#          predicates:
+#            - Path=/api/auth/
+#            - Metohd=POST
+#          filters:
+#            - RewritePath=/api/auth/(?<segment>.*), /${segment}
+
