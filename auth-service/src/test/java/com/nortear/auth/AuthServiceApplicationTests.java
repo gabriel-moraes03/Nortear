@@ -1,4 +1,4 @@
-package com.nortear.auth_service;
+package com.nortear.auth;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
