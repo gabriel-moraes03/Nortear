@@ -14,8 +14,27 @@ services:
     networks:
       - nortear-network
     restart: unless-stopped
+  
+  postgres-db:
+    image: ankane/pgvector:latest
+    profiles:
+      - "infra"
+    container_name: nortear-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    networks:
+      - nortear-network
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    restart: unless-stopped
     
 networks:
   nortear-network:
     driver: bridge
     
+volumes:
+  pgdata:
