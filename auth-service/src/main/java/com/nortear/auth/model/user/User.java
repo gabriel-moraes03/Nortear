@@ -1,5 +1,6 @@
 package com.nortear.auth.model.user;
 
+import com.nortear.auth.model.goal.Goal;
 import com.nortear.auth.model.skill.Skill;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -14,7 +15,7 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "user")
+@Table(name = "users")
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -29,10 +30,11 @@ public class User {
     @Column(nullable = false)
     private String password;
 
-    @ManyToMany
-    @JoinTable(name = "user_skill", joinColumns = @JoinColumn(name = "user_id"),
-    inverseJoinColumns = @JoinColumn(name = "skill_id"))
+    @OneToMany
+    @JoinColumn(name = "user_id")
     private Set<Skill> skillList;
 
-    //lista de objetivos
+    @OneToMany
+    @JoinColumn(name = "user_id")
+    private Set<Goal> goalList;
 }

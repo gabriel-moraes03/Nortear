@@ -1,5 +1,5 @@
 server:
-  port: ${AUTH_PORT}
+  port: ${AUTH_PORT:8081}
 
 spring:
   application:
@@ -20,15 +20,15 @@ spring:
         format_sql: true
 
   datasource:
-    username: ${POSTGRES_USER}
-    password: ${POSTGRES_PASSWORD}
+    username: ${POSTGRES_USER:root}
+    password: ${POSTGRES_PASSWORD:rootpassword}
     driver-class-name: org.postgresql.Driver
 
 api:
   security:
     token:
-      secret: ${JWT_SECRET}
-      expiration-inside-ms: ${JWT_EXPIRATION}
+      secret: ${JWT_SECRET:minha_chave_secreta_super_segura_para_dev_123}
+      expiration-inside-ms: ${JWT_EXPIRATION:3600000}
 
 ---
 spring:
@@ -36,7 +36,7 @@ spring:
     activate:
       on-profile: default
   datasource:
-    url: jdbc:postgresql://localhost:${POSTGRES_PORT}/auth_db
+    url: jdbc:postgresql://localhost:${POSTGRES_PORT:5432}/auth_db
 
 ---
 spring:
