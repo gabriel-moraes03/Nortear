@@ -9,12 +9,15 @@ services:
       - "8080:8080"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
-      #- AUTH_SERVICE_URL=http://auth-service:8081
-      #- CHAT_SERVICE_URL=http://chat-service:8082
+      # - AUTH_SERVICE_URL=http://auth-service:8081
+      # - CHAT_SERVICE_URL=http://chat-service:8082
+      - MCP_SERVICE_URL=http://mcp-server:3000
     networks:
       - nortear-network
     restart: unless-stopped
-  
+    depends_on:
+      - mcp-server 
+
   postgres-db:
     image: ankane/pgvector:latest
     profiles:
@@ -30,6 +33,18 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    restart: unless-stopped
+
+  mcp-server:
+    build:
+      context: ./server-mcp 
+    container_name: nortear-mcp
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+    networks:
+      - nortear-network
     restart: unless-stopped
     
 networks:
