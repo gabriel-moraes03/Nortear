@@ -2,16 +2,17 @@
   "name": "server-mcp",
   "version": "1.0.0",
   "type": "module",
-  "description": "",
+  "description": "MCP Server — ponte entre chat-service e Ollama local",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node index.js",
+    "dev": "node --watch index.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.29.0",
-    "express": "^5.2.1"
+    "express": "^5.2.1",
+    "ollama": "^0.5.12"
   }
 }

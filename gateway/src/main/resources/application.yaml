@@ -7,12 +7,32 @@ spring:
   cloud:
     gateway:
       routes:
-#        Exemplo de rota para replicação na medida da construção dos services e endpoints
-#        - id: auth-service
-#          uri: ${AUTH_SERVICE_URL:http://localhost:8081}
-#          predicates:
-#            - Path=/api/auth/
-#            - Metohd=POST
-#          filters:
-#            - RewritePath=/api/auth/(?<segment>.*), /${segment}
 
+        # ── Auth Service ──────────────────────────────────────────────────────
+        - id: auth-register-login
+          uri: ${AUTH_SERVICE_URL:http://localhost:8081}
+          predicates:
+            - Path=/api/auth/**
+
+        - id: auth-users
+          uri: ${AUTH_SERVICE_URL:http://localhost:8081}
+          predicates:
+            - Path=/api/users/**
+
+        # ── Chat Service ──────────────────────────────────────────────────────
+        - id: chat-sessions
+          uri: ${CHAT_SERVICE_URL:http://localhost:8082}
+          predicates:
+            - Path=/api/v1/chats/**
+
+        # ── Vagas (chat-service → embedding-service) ──────────────────────────
+        - id: vagas
+          uri: ${CHAT_SERVICE_URL:http://localhost:8082}
+          predicates:
+            - Path=/api/vagas/**
+
+        # ── Telegram Webhook + Pairing ────────────────────────────────────────
+        - id: telegram
+          uri: ${CHAT_SERVICE_URL:http://localhost:8082}
+          predicates:
+            - Path=/api/v1/telegram/**
