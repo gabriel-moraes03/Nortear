@@ -56,6 +56,14 @@ services:
     container_name: nortear-ollama
     ports:
       - "11434:11434"
+    environment:
+      # Serializa as inferências: 1 requisição por vez (evita estourar a RAM
+      # quando chat e geração de embeddings acontecem ao mesmo tempo)
+      - OLLAMA_NUM_PARALLEL=1
+      # Mantém no máx. os 2 modelos (chat + embedding) carregados, sem mais
+      - OLLAMA_MAX_LOADED_MODELS=2
+      # Descarrega modelos ociosos após 5 min, liberando memória
+      - OLLAMA_KEEP_ALIVE=5m
     networks:
       - nortear-network
     volumes:
