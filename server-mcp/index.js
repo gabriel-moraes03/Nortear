@@ -59,9 +59,11 @@ function buildVagasContext(vagas) {
   });
 
   return (
-    "\n\n---\nVAGAS RELEVANTES ENCONTRADAS (baseadas no perfil do usuário — use para embasar suas respostas):\n" +
+    "\n\n---\nVAGAS REAIS COMPATÍVEIS COM O PERFIL DO USUÁRIO (recuperadas da base via RAG):\n" +
     linhas.join("\n") +
-    "\n---"
+    "\n\nINSTRUÇÃO: Se o usuário pedir recomendação de vagas, você DEVE listar estas vagas reais acima " +
+    "(título, empresa e link), explicando brevemente por que combinam com o perfil dele. " +
+    "NÃO peça mais detalhes nem invente vagas genéricas — use exatamente as vagas listadas.\n---"
   );
 }
 
@@ -95,7 +97,15 @@ app.post("/mcp/prompt", async (req, res) => {
 
   // 3. Chama o modelo local
   try {
-    const ollamaResponse = await ollama.chat({ model: MODEL, messages, stream: false });
+    const ollamaResponse = await ollama.chat({
+      model: MODEL,
+      messages,
+      stream: false,
+      options: {
+        num_ctx: 2048,      // janela de contexto reduzida → menos KV cache → menos RAM
+        num_predict: 512,   // limita o tamanho da resposta
+      },
+    });
     const aiText = ollamaResponse.message.content;
     console.log(`[prompt] userId=${userId} sessionId=${sessionId} → ${aiText.slice(0, 80)}...`);
     return res.json({ response: aiText });

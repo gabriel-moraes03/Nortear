@@ -37,6 +37,9 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
       CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
+      # Limita o heap do Kafka (estava usando ~830MB sem limite)
+      KAFKA_HEAP_OPTS: "-Xmx512m -Xms256m"
+    mem_limit: 1g
     ports:
       - "9092:9092"
     networks:
@@ -56,6 +59,9 @@ services:
     container_name: nortear-ollama
     ports:
       - "11434:11434"
+    # Teto de RAM: se a inferência tentar passar disso, o Docker mata e reinicia
+    # APENAS este container (recuperável) em vez de congelar a máquina inteira.
+    mem_limit: 4g
     environment:
       # Serializa as inferências: 1 requisição por vez (evita estourar a RAM
       # quando chat e geração de embeddings acontecem ao mesmo tempo)
@@ -86,7 +92,9 @@ services:
     container_name: nortear-embedding
     ports:
       - "8001:8001"
+    mem_limit: 1g
     environment:
+      - PYTHONUNBUFFERED=1
       - VECTOR_DB_HOST=postgres-db
       - VECTOR_DB_NAME=vector_db
       - POSTGRES_USER=${POSTGRES_USER}
@@ -132,6 +140,7 @@ services:
       - "${AUTH_PORT:-8081}:8081"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
+      - JAVA_TOOL_OPTIONS=-Xmx256m -XX:MaxMetaspaceSize=128m
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - JWT_SECRET=${JWT_SECRET}
@@ -154,6 +163,7 @@ services:
       - "${CHAT_PORT:-8082}:8082"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
+      - JAVA_TOOL_OPTIONS=-Xmx256m -XX:MaxMetaspaceSize=128m
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - JWT_SECRET=${JWT_SECRET}
@@ -206,6 +216,7 @@ services:
       - "8080:8080"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
+      - JAVA_TOOL_OPTIONS=-Xmx256m -XX:MaxMetaspaceSize=128m
       - AUTH_SERVICE_URL=http://auth-service:8081
       - CHAT_SERVICE_URL=http://chat-service:8082
     networks:

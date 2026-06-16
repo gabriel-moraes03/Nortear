@@ -45,7 +45,7 @@ def embed_user(req: UserEmbedRequest):
 @app.get("/search/vagas")
 def search_vagas(
     userId: int = Query(..., description="ID do usuário"),
-    limit: int = Query(default=5, ge=1, le=10),
+    limit: int = Query(default=5, ge=1, le=50),
 ):
     """Busca semântica das vagas mais relevantes para o perfil do usuário."""
     user_emb = get_user_embedding(userId)

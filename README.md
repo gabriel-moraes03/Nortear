@@ -141,6 +141,36 @@ Consulta (a cada mensagem do chat):
 
 Quando **não há vagas indexadas**, o MCP é transparente: avisa que a base ainda está vazia e orienta com base nas skills do usuário, sem inventar vagas.
 
+#### Como o score de match é calculado
+
+O percentual de compatibilidade (`matchScore`) exibido em cada vaga é a **similaridade de cosseno** entre dois vetores de 768 dimensões: o do perfil do usuário e o da vaga. O cálculo acontece em 3 etapas:
+
+**1. Vetorização do perfil** (no cadastro, via saga) — o `embedding-service` monta um texto a partir do objetivo e das skills do usuário e gera o embedding:
+```
+texto = "Busco vaga de {vagaDesejada}. Skills: {skill1, skill2, ...}."
+perfil_vetor = nomic-embed-text(texto)   # 768 dimensões
+```
+
+**2. Vetorização da vaga** (no pipeline de vagas) — cada vaga processada vira um texto rico (com peso para título, área, senioridade e skills) e também é vetorizada:
+```
+texto = "{titulo}. Área: {area}. Senioridade: {senioridade}. Skills: {...}. {descrição[:600]}"
+vaga_vetor = nomic-embed-text(texto)     # 768 dimensões
+```
+
+**3. Comparação** (a cada busca) — o pgvector calcula a distância de cosseno entre o vetor do perfil e o de cada vaga, ordena pelas menores distâncias (mais próximas) usando o índice **HNSW**, e converte em similaridade:
+```sql
+SELECT 1 - (embedding <=> perfil_vetor) AS similarity
+FROM vaga_embedding
+ORDER BY embedding <=> perfil_vetor      -- <=> = distância de cosseno
+LIMIT N
+```
+
+- O operador `<=>` retorna a **distância de cosseno** (`0` = idênticos, `2` = opostos).
+- `similarity = 1 - distância` → resultado entre `-1` e `1` (na prática, `0` a `1` para textos).
+- O `matchScore` final é `round(similarity × 100)` — ex.: similaridade `0.83` → **83% match**.
+
+> **Importante:** o match é **semântico**, não por correspondência exata de palavras. Uma vaga que pede "Spring Boot" pontua alto para quem tem "Java" porque os embeddings capturam a proximidade de significado entre as tecnologias — algo que um filtro por keyword não faria. Por isso vagas de áreas afins (ex.: backend × fullstack) aparecem com scores próximos.
+
 ---
 
 ## Stack tecnológica

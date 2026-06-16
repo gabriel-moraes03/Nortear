@@ -28,12 +28,16 @@ def _run_consumer() -> None:
                 group_id=GROUP_ID,
                 value_deserializer=lambda m: json.loads(m.decode("utf-8")),
                 auto_offset_reset="earliest",
-                enable_auto_commit=True,
-                consumer_timeout_ms=-1,
+                # Commit manual: só confirma o offset DEPOIS de vetorizar e gravar.
+                # Assim, um crash no meio não "perde" vagas — elas são reentregues.
+                enable_auto_commit=False,
+                # Sem consumer_timeout_ms: o iterador bloqueia aguardando mensagens
+                # (consumer contínuo). Com -1 ele desistia antes do fetch completar.
             )
             print("[Kafka] Consumer conectado, aguardando eventos de vagas...")
             for msg in consumer:
                 _handle_event(msg.value)
+                consumer.commit()
         except Exception as e:
             print(f"[Kafka] Erro de conexão: {e}. Reconectando em 10s...")
             time.sleep(10)

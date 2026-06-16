@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Briefcase,
@@ -10,35 +11,11 @@ import {
   Sparkles,
   ArrowRight,
   Activity,
+  Loader2,
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
-
-const mockVagas = [
-  {
-    id: '1',
-    titulo: 'Frontend Developer React',
-    empresa: 'TechBrasil',
-    localizacao: 'Remoto',
-    matchScore: 94,
-    skills: ['React', 'TypeScript', 'Tailwind'],
-  },
-  {
-    id: '2',
-    titulo: 'Fullstack Node.js + React',
-    empresa: 'StartupXYZ',
-    localizacao: 'Híbrido · SP',
-    matchScore: 88,
-    skills: ['Node.js', 'React', 'PostgreSQL'],
-  },
-  {
-    id: '3',
-    titulo: 'Dev Frontend Júnior',
-    empresa: 'AgênciaDigital',
-    localizacao: 'Remoto',
-    matchScore: 81,
-    skills: ['JavaScript', 'React', 'CSS'],
-  },
-]
+import { vagasApi } from '../services/api'
+import type { Vaga } from '../types'
 
 function MatchBadge({ score }: { score: number }) {
   const color = score >= 90 ? 'text-green-400 bg-green-400/10' : score >= 80 ? 'text-indigo-400 bg-indigo-400/10' : 'text-slate-400 bg-slate-700/50'
@@ -53,6 +30,18 @@ export default function Dashboard() {
   const { user } = useAuth()
   const navigate = useNavigate()
   const firstName = user?.name?.split(' ')[0] ?? 'Usuário'
+
+  const [vagas, setVagas] = useState<Vaga[]>([])
+  const [loadingVagas, setLoadingVagas] = useState(true)
+
+  useEffect(() => {
+    vagasApi.getAll(10)
+      .then(setVagas)
+      .catch(() => setVagas([]))
+      .finally(() => setLoadingVagas(false))
+  }, [])
+
+  const topVagas = vagas.slice(0, 3)
 
   return (
     <div className="p-6 lg:p-8 max-w-5xl mx-auto">
@@ -69,8 +58,8 @@ export default function Dashboard() {
         <StatCard
           icon={<Briefcase size={18} className="text-indigo-400" />}
           label="Vagas Compatíveis"
-          value="23"
-          sub="hoje"
+          value={loadingVagas ? '…' : String(vagas.length)}
+          sub="no seu perfil"
           accent="indigo"
         />
         <StatCard
@@ -104,7 +93,22 @@ export default function Dashboard() {
             </button>
           </div>
 
-          {mockVagas.map(v => (
+          {loadingVagas && (
+            <div className="flex items-center justify-center py-10 text-slate-500">
+              <Loader2 size={20} className="animate-spin" />
+            </div>
+          )}
+
+          {!loadingVagas && topVagas.length === 0 && (
+            <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 text-center">
+              <Briefcase size={24} className="mx-auto mb-2 text-slate-600" />
+              <p className="text-xs text-slate-500">
+                Nenhuma vaga compatível ainda. Verifique se seu perfil foi processado pela IA.
+              </p>
+            </div>
+          )}
+
+          {!loadingVagas && topVagas.map(v => (
             <div
               key={v.id}
               className="bg-slate-900 border border-slate-800 rounded-xl p-4 hover:border-slate-700 transition-colors"
@@ -116,11 +120,13 @@ export default function Dashboard() {
                 </div>
                 <MatchBadge score={v.matchScore} />
               </div>
-              <div className="flex items-center gap-1.5 text-xs text-slate-500 mb-3">
-                <MapPin size={11} /> {v.localizacao}
-              </div>
+              {v.localizacao && (
+                <div className="flex items-center gap-1.5 text-xs text-slate-500 mb-3">
+                  <MapPin size={11} /> {v.localizacao}
+                </div>
+              )}
               <div className="flex flex-wrap gap-1.5">
-                {v.skills.map(s => (
+                {v.skills.slice(0, 6).map(s => (
                   <span key={s} className="text-[10px] px-2 py-0.5 bg-slate-800 text-slate-400 rounded-full">
                     {s}
                   </span>
